@@ -83,21 +83,27 @@ df['empty_count'] = np.sign(df['empty_count'])
 df_month_tot = df[['full_count','empty_count','Production','Energy_excess']].resample('M').sum()
 df_month_tot['full %'] = 100*df_month_tot['full_count']/df_month_tot.index.day
 df_month_tot['empty %'] = 100*df_month_tot['empty_count']/df_month_tot.index.day
+df_month_tot['Production'] = df_month_tot['Production']/df_month_tot.index.day
+df_month_tot['Energy_excess'] = df_month_tot['Energy_excess']/df_month_tot.index.day
 
 df_month_avg = df_month_tot.groupby(df_month_tot.index.month).mean()
 df_month_avg['Month']=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 df_month_avg.set_index('Month', inplace=True)
 
 
-#Plots 
+##Plots 
+
+#Percentage of Days with full/empty battery
 df_month_avg[['empty %','full %']].plot.bar()
 plt.ylabel('Percentage days empty/full (Avg over years)')
 plt.show()
 
+#Mean number of days in each month where battery goes below cut-off
 df_month_avg['empty_count'].plot.bar()
 plt.ylabel('Mean days requiring refill')
 plt.show()
 
+#Average monthyl production and uncaptured energy
 df_month_avg[['Production','Energy_excess']].plot.bar()
 plt.ylabel('Avg Energy Wh')
 plt.show()
