@@ -18,40 +18,55 @@ import numpy as np
 #Solar_data collection parameters
 latitude = 52.943
 longitude = -1.133
-start_year = 2005
-end_year = 2016
 
-surface_tilt = 35
-surface_azimuth = 0
+start_year = 2005
+end_year = 2007
+
+surface_tilt = np.array([35,35])
+surface_azimuth = np.array([0,180])
 
 #Get solar data
-df_PVGIS, meta, inputs = pvlib.iotools.get_pvgis_hourly(latitude, longitude, start=start_year, end=end_year, map_variables=True, components=False, usehorizon=True, userhorizon=None, raddatabase='PVGIS-SARAH', surface_tilt=surface_tilt,surface_azimuth=surface_azimuth)
+df_PVGIS_p1, meta_p1, inputs_p1 = pvlib.iotools.get_pvgis_hourly(latitude, longitude, start=start_year, end=end_year, map_variables=True, components=False, usehorizon=True, userhorizon=None, raddatabase='PVGIS-SARAH', surface_tilt=surface_tilt[0],surface_azimuth=surface_azimuth[0])
+df_PVGIS_p2, meta_p2, inputs_p2 = pvlib.iotools.get_pvgis_hourly(latitude, longitude, start=start_year, end=end_year, map_variables=True, components=False, usehorizon=True, userhorizon=None, raddatabase='PVGIS-SARAH', surface_tilt=surface_tilt[1],surface_azimuth=surface_azimuth[1])
 
 #Determine solar cell temp for solar_data
-cell_temp = pvlib.temperature.pvsyst_cell(df_PVGIS['poa_global'], temp_air = df_PVGIS['temp_air'], wind_speed=df_PVGIS['wind_speed'], u_c=29, u_v=0)
+cell_temp_p1 = pvlib.temperature.pvsyst_cell(df_PVGIS_p1['poa_global'], temp_air = df_PVGIS_p1['temp_air'], wind_speed=df_PVGIS_p1['wind_speed'], u_c=29, u_v=0)
+cell_temp_p2 = pvlib.temperature.pvsyst_cell(df_PVGIS_p2['poa_global'], temp_air = df_PVGIS_p2['temp_air'], wind_speed=df_PVGIS_p2['wind_speed'], u_c=29, u_v=0)
 
 #Solar cell specification
 temp_coef = -0.45/100 #Temperature coefficient %/C
 power = 215 #Nominal power 215W per pannel
 
 #Determine dc power output from PV system model
-array_power = pvlib.pvsystem.pvwatts_dc(df_PVGIS['poa_global'], temp_cell=cell_temp, pdc0=power, gamma_pdc=temp_coef, temp_ref = 25.0)
+array_power_p1 = pvlib.pvsystem.pvwatts_dc(df_PVGIS_p1['poa_global'], temp_cell=cell_temp_p1, pdc0=power, gamma_pdc=temp_coef, temp_ref = 25.0)
+array_power_p2 = pvlib.pvsystem.pvwatts_dc(df_PVGIS_p2['poa_global'], temp_cell=cell_temp_p2, pdc0=power, gamma_pdc=temp_coef, temp_ref = 25.0)
 
 #Battery specifications
+setup_date = '2006-04-01 00:11:00 UTC' #mm/dd/2006
 bat_cap = 125*4*12 #battery capacity, 125Ah x 4 batteries x 12V
 cut_off = 0.4 #fractional cutoff for lead-acid battery 40%
 cam_consump = 600/24 #Daily consumption per hour 600Wh for the day
 
+
 #Battery data frame
 df_bat = {}
-df_bat = pd.DataFrame(index=df_PVGIS.index)
+df_bat = pd.DataFrame(index=df_PVGIS_p1.index)
 df_bat['consumption'] = cam_consump
 df_bat['live_cap'] = bat_cap
-df_bat['Production'] = array_power
-df_bat['net_change_per_hour'] = array_power - cam_consump
+df_bat['Production'] = array_power_p1 + array_power_p2
+df_bat['net_change_per_hour'] = array_power_p1 + array_power_p2 - cam_consump
 df_bat['Energy_excess'] = 0 
 df_bat['full_count'] = 0 
 df_bat['empty_count'] = 0 
+
+timestamp_to_reorder = pd.to_datetime(setup_date)
+# Find the index of the timestamp
+df_part1 = df_bat.loc[:timestamp_to_reorder]
+df_part2 = df_bat.loc[timestamp_to_reorder:].iloc[1:]
+
+# Concatenate with the part from the timestamp first
+df_bat = pd.concat([df_part2, df_part1])
+df_new2 = pd.concat([df_part2, df_part1])
 
 
 #Model battery charge/discharge at each hour
@@ -73,8 +88,8 @@ for i in range(len(df_bat['consumption'])-1):
 
 
 #
-df_bat.loc[df_bat['live_cap']<bat_cap*cut_off,'empty_count'] = 1
-df_bat.loc[df_bat['live_cap']==bat_cap,'full_count'] = 1
+df_bat.loc[df_bat['live_cap'] < bat_cap*cut_off,'empty_count'] = 1
+df_bat.loc[df_bat['live_cap'] == bat_cap,'full_count'] = 1
 
 df = df_bat.resample('D').sum()
 df['full_count'] = np.sign(df['full_count'])
@@ -93,9 +108,7 @@ df_month_avg.set_index('Month', inplace=True)
 
 df_new = df_month_tot.groupby(df_month_tot.index.month).agg({'Production': ['mean', 'std'], 'Energy_excess': ['mean', 'std']})
 
-plt.bar(np.arange(df.shape[1]), df.mean(), yerr=[df.mean()-df.min(), df.max()-df.mean()], capsize=6)
 ##Plots 
-
 #Percentage of Days with full/empty battery
 df_month_avg[['empty %','full %']].plot.bar()
 plt.ylabel('Percentage days empty/full (Avg over years)')
