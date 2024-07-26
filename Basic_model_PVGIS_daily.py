@@ -87,10 +87,13 @@ df_month_tot['Production'] = df_month_tot['Production']/df_month_tot.index.day
 df_month_tot['Energy_excess'] = df_month_tot['Energy_excess']/df_month_tot.index.day
 
 df_month_avg = df_month_tot.groupby(df_month_tot.index.month).mean()
-df_month_avg['Month']=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+df_month_avg['Month'] = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 df_month_avg.set_index('Month', inplace=True)
 
 
+df_new = df_month_tot.groupby(df_month_tot.index.month).agg({'Production': ['mean', 'std'], 'Energy_excess': ['mean', 'std']})
+
+plt.bar(np.arange(df.shape[1]), df.mean(), yerr=[df.mean()-df.min(), df.max()-df.mean()], capsize=6)
 ##Plots 
 
 #Percentage of Days with full/empty battery
@@ -104,7 +107,8 @@ plt.ylabel('Mean days requiring refill')
 plt.show()
 
 #Average monthyl production and uncaptured energy
-df_month_avg[['Production','Energy_excess']].plot.bar()
+df_new['Production']['mean'].plot.bar(yerr=[df_new['Production']['std']],capsize=6)
+df_new['Energy_excess']['mean'].plot.bar(color='r',yerr=[df_new['Energy_excess']['std']],capsize=6)
 plt.ylabel('Avg Energy Wh')
 plt.show()
 
