@@ -67,27 +67,48 @@ df_part2 = df_bat.loc[timestamp_to_reorder:].iloc[1:]
 df_bat = pd.concat([df_part2, df_part1])
 df_new2 = pd.concat([df_part2, df_part1])
 
+REFILL = True
 
-#Model battery charge/discharge at each hour
-for i in range(len(df_bat['consumption'])-1):
-    
-    df_bat['live_cap'][i] = df_bat['live_cap'][i] + df_bat['net_change_per_hour'][i]
-    
-    if df_bat['live_cap'][i]>=bat_cap:
-        df_bat['Energy_excess'][i] =  df_bat['net_change_per_hour'][i]
-        df_bat['live_cap'][i] = bat_cap
-        df_bat['live_cap'][i+1] = df_bat['live_cap'][i]
-    
-    elif df_bat['live_cap'][i] <= 0:
-        df_bat['live_cap'][i] = 0
-        df_bat['live_cap'][i+1] = df_bat['live_cap'][i]
+if REFILL == False:
+    #Model battery charge/discharge at each hour
+    for i in range(len(df_bat['consumption'])-1):
         
-    else:
-        df_bat['live_cap'][i+1] = df_bat['live_cap'][i]
+        df_bat['live_cap'][i] = df_bat['live_cap'][i] + df_bat['net_change_per_hour'][i]
+        
+        if df_bat['live_cap'][i]>=bat_cap:
+            df_bat['Energy_excess'][i] =  df_bat['net_change_per_hour'][i]
+            df_bat['live_cap'][i] = bat_cap
+            df_bat['live_cap'][i+1] = df_bat['live_cap'][i]
+        
+        elif df_bat['live_cap'][i] <= 0:
+            df_bat['live_cap'][i] = 0
+            df_bat['live_cap'][i+1] = df_bat['live_cap'][i]
+            
+        else:
+            df_bat['live_cap'][i+1] = df_bat['live_cap'][i]
+elif REFILL == True:
+    #Model battery charge/discharge at each hour
+    for i in range(len(df_bat['consumption'])-1):
+        
+        df_bat['live_cap'][i] = df_bat['live_cap'][i] + df_bat['net_change_per_hour'][i]
+        
+        if df_bat['live_cap'][i]>=bat_cap:
+            df_bat['Energy_excess'][i] =  df_bat['net_change_per_hour'][i]
+            df_bat['live_cap'][i] = bat_cap
+            df_bat['live_cap'][i+1] = df_bat['live_cap'][i]
+        
+        elif df_bat['live_cap'][i] <= bat_cap*cut_off:
+            df_bat['live_cap'][i] = bat_cap*cut_off
+            df_bat['live_cap'][i+1] = bat_cap
+            
+        else:
+            df_bat['live_cap'][i+1] = df_bat['live_cap'][i]
+
+
 
 
 #
-df_bat.loc[df_bat['live_cap'] < bat_cap*cut_off,'empty_count'] = 1
+df_bat.loc[df_bat['live_cap'] <= bat_cap*cut_off,'empty_count'] = 1
 df_bat.loc[df_bat['live_cap'] == bat_cap,'full_count'] = 1
 
 df = df_bat.resample('D').sum()
@@ -116,6 +137,7 @@ plt.show()
 #Mean number of days in each month where battery goes below cut-off
 df_month_avg['empty_count'].plot.bar()
 plt.ylabel('Mean days requiring refill')
+plt.ylim([0,31])
 plt.show()
 
 #Average monthyl production and uncaptured energy
