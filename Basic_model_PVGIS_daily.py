@@ -21,8 +21,13 @@ longitude = -1.133
 start_year = 2005
 end_year = 2016
 
+<<<<<<< Updated upstream
 surface_tilt = 35
 surface_azimuth = 0
+=======
+surface_tilt = np.array([35,35])
+surface_azimuth = np.array([0,0])
+>>>>>>> Stashed changes
 
 #Get solar data
 df_PVGIS, meta, inputs = pvlib.iotools.get_pvgis_hourly(latitude, longitude, start=start_year, end=end_year, map_variables=True, components=False, usehorizon=True, userhorizon=None, raddatabase='PVGIS-SARAH', surface_tilt=surface_tilt,surface_azimuth=surface_azimuth)
@@ -38,7 +43,7 @@ power = 215 #Nominal power 215W per pannel
 array_power = pvlib.pvsystem.pvwatts_dc(df_PVGIS['poa_global'], temp_cell=cell_temp, pdc0=power, gamma_pdc=temp_coef, temp_ref = 25.0)
 
 #Battery specifications
-bat_cap = 125*4*12 #battery capacity, 125Ah x 4 batteries x 12V
+bat_cap = 125*6*12 #battery capacity, 125Ah x 4 batteries x 12V
 cut_off = 0.4 #fractional cutoff for lead-acid battery 40%
 cam_consump = 600/24 #Daily consumption per hour 600Wh for the day
 
@@ -54,6 +59,7 @@ df_bat['full_count'] = 0
 df_bat['empty_count'] = 0 
 
 
+<<<<<<< Updated upstream
 #Model battery charge/discharge at each hour
 for i in range(len(df_bat['consumption'])-1):
     
@@ -67,6 +73,26 @@ for i in range(len(df_bat['consumption'])-1):
     elif df_bat['live_cap'][i] <= 0:
         df_bat['live_cap'][i] = 0
         df_bat['live_cap'][i+1] = df_bat['live_cap'][i]
+=======
+## Select start date when tower is placed
+setup_date = '2006-01-01 00:11:00 UTC' #mm/dd/2006
+
+#Reorders data frame for start date
+timestamp_to_reorder = pd.to_datetime(setup_date)
+# Find the index of the timestamp
+df_part1 = df_bat.loc[:timestamp_to_reorder]
+df_part2 = df_bat.loc[timestamp_to_reorder:].iloc[1:]
+# Concatenate with the part from the timestamp first
+df_bat = pd.concat([df_part2, df_part1])
+df_new2 = pd.concat([df_part2, df_part1])
+
+
+REFILL = True #Batery refill when below cut-off
+if REFILL == False:
+    #Model battery charge/discharge at each hour
+    for i in range(len(df_bat['consumption'])-1):
+        df_bat.loc[df_bat.index[i], 'live_cap'] = df_bat.loc[df_bat.index[i], 'live_cap'] + df_bat.loc[df_bat.index[i], 'net_change_per_hour']
+>>>>>>> Stashed changes
         
     else:
         df_bat['live_cap'][i+1] = df_bat['live_cap'][i]
