@@ -13,4 +13,5 @@ The parameters that are free for the user to change are:
 The battery parameters that can be changed are:
 1. Battery capacity: the default set-up is for 4 lead-acid batteries, 4 $\times$12V$\times$125Ah=6000Wh.
 2. Consumption: Camera tower energy consumption, assumed to be 600Wh per day.
-3. 
+3. Battery cut-off: The decimal value at which the battery is deemed to be cut-off.
+
