@@ -5,7 +5,6 @@ Created on Thu Jul 25 10:39:28 2024
 
 @author: joshua
 """
-
 import os  # for getting environment variables
 import pathlib  # for finding the example dataset
 import pvlib
