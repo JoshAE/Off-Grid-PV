@@ -11,7 +11,7 @@ The parameters that are free for the user to change are:
 5. Temperature coefficient: The temperature coefficient of the pannels (assumed all are the same)
 
 The battery parameters that can be changed are:
-1. Battery capacity: the default set-up is for 4 lead-acid batteries, 4 $\times$ 12V $\times$ 125Ah=6000Wh.
+1. Battery capacity: the default set-up is for 4 lead-acid batteries, 4 $\times$ 12V $\times$ 125Ah = 6000Wh.
 2. Consumption: Camera tower energy consumption, assumed to be 600Wh per day.
 3. Battery cut-off: The decimal value at which the battery is deemed to be cut-off.
 4. Battery refill: If True gives the dynamics as if eveery time the cutoff is reached the batteries are replaced with full batteries. If False it assumes the batteries can discharge to zero and are never replaced.
