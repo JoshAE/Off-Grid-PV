@@ -44,7 +44,7 @@ array_power_p2 = pvlib.pvsystem.pvwatts_dc(df_PVGIS_p2['poa_global'], temp_cell=
 #Battery specifications
 bat_cap = 125*4*12 #battery capacity, 125Ah x 4 batteries x 12V
 cut_off = 0.4 #fractional cutoff for lead-acid battery 40%
-cam_consump = 600/24 #Daily consumption per hour 600Wh for the day
+cam_consump = 500/24 #Daily consumption per hour 600Wh for the day
 
 
 #Battery data frame
@@ -146,4 +146,5 @@ df_new['Production']['mean'].plot.bar(yerr=[df_new['Production']['std']],capsize
 df_new['Energy_excess']['mean'].plot.bar(color='r',yerr=[df_new['Energy_excess']['std']],capsize=6)
 plt.ylabel('Avg Energy Wh')
 plt.show()
+
 
