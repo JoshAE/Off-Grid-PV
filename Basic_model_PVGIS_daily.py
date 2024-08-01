@@ -58,15 +58,16 @@ df_bat['Energy_excess'] = 0
 df_bat['full_count'] = 0 
 df_bat['empty_count'] = 0 
 
-
 ## Select start date when tower is placed
 setup_date = '2006-04-01 00:11:00 UTC' #mm/dd/2006
 
 #Reorders data frame for start date
 timestamp_to_reorder = pd.to_datetime(setup_date)
+
 # Find the index of the timestamp
 df_part1 = df_bat.loc[:timestamp_to_reorder]
 df_part2 = df_bat.loc[timestamp_to_reorder:].iloc[1:]
+
 # Concatenate with the part from the timestamp first
 df_bat = pd.concat([df_part2, df_part1])
 df_new2 = pd.concat([df_part2, df_part1])
@@ -126,7 +127,6 @@ df_month_avg = df_month_tot.groupby(df_month_tot.index.month).mean()
 df_month_avg['Month'] = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 df_month_avg.set_index('Month', inplace=True)
 
-
 df_new = df_month_tot.groupby(df_month_tot.index.month).agg({'Production': ['mean', 'std'], 'Energy_excess': ['mean', 'std']})
 
 ##Plots 
@@ -146,5 +146,4 @@ df_new['Production']['mean'].plot.bar(yerr=[df_new['Production']['std']],capsize
 df_new['Energy_excess']['mean'].plot.bar(color='r',yerr=[df_new['Energy_excess']['std']],capsize=6)
 plt.ylabel('Avg Energy Wh')
 plt.show()
-
 
