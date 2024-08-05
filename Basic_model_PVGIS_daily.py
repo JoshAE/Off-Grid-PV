@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Jul 25 10:39:28 2024
-
 @author: joshua
 """
 import os  # for getting environment variables
@@ -44,8 +43,7 @@ array_power_p2 = pvlib.pvsystem.pvwatts_dc(df_PVGIS_p2['poa_global'], temp_cell=
 #Battery specifications
 bat_cap = 125*4*12 #battery capacity, 125Ah x 4 batteries x 12V
 cut_off = 0.4 #fractional cutoff for lead-acid battery 40%
-cam_consump = 500/24 #Daily consumption per hour 600Wh for the day
-
+cam_consump = 840/24 #Daily consumption per hour 600Wh for the day
 
 #Battery data frame
 df_bat = {}

@@ -55,7 +55,7 @@ def PV_data(latitude,longitude, surface_tilt, surface_azimuth, temp_coef = np.ar
     
     return df_p
 
-def PV_dynamics(df_bat, cam_consump, bat_cap, setup_date = '01-01', setup_time='00:11:00', cut_off=0.4, REFILL=True):
+def PV_dynamics(df_bat, cam_consump, bat_cap, setup_date = '01-01', setup_time='00:11:00', cut_off=0.4, REFILL=True, DAY = False):
     ## Select start date when tower is placed
     setup_date = '2006-' + setup_date + ' ' + setup_time + ' UTC' 
     #Reorders data frame for start date
@@ -68,6 +68,10 @@ def PV_dynamics(df_bat, cam_consump, bat_cap, setup_date = '01-01', setup_time='
     # Concatenate with the part from the timestamp first
     df_bat = pd.concat([df_part2, df_part1])
     
+    if DAY == True:
+        df_bat = df_bat.resample('D').sum()
+    else:
+        pass
     
     if REFILL == False:
         #Model battery charge/discharge at each hour
@@ -106,7 +110,15 @@ def PV_dynamics(df_bat, cam_consump, bat_cap, setup_date = '01-01', setup_time='
     
     df_bat.loc[df_bat['live_cap'] <= bat_cap*cut_off,'empty_count'] = 1
     df_bat.loc[df_bat['live_cap'] == bat_cap,'full_count'] = 1
-    return df_bat
+    
+    # day totals
+    df = df_bat.resample('D').sum()
+    
+    # empty and full battery count
+    df['full_count'] = np.sign(df['full_count'])
+    df['empty_count'] = np.sign(df['empty_count'])
+    
+    return df
     
 def shuffle_years(group):
     group = group.copy()
@@ -168,14 +180,8 @@ array_power = PV_data(latitude, longitude, surface_tilt, surface_azimuth, FAKE=T
 df_bat = battery(array_power, bat_cap, cam_consump)
 
 # battery dynamics
-df_bat_dyn = PV_dynamics(df_bat, cam_consump, bat_cap)
+df = PV_dynamics(df_bat, cam_consump, bat_cap, DAY=True)
 
-# day totals
-df = df_bat_dyn.resample('D').sum()
-
-# empty and full battery count
-df['full_count'] = np.sign(df['full_count'])
-df['empty_count'] = np.sign(df['empty_count'])
 
 # monthly totals
 df_month_tot = df[['full_count','empty_count','Production','Energy_excess']].resample('M').sum()
