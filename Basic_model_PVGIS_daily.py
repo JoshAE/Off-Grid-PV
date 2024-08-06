@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Jul 25 10:39:28 2024
-
 @author: joshua
 """
 import os  # for getting environment variables
@@ -44,8 +43,7 @@ array_power_p2 = pvlib.pvsystem.pvwatts_dc(df_PVGIS_p2['poa_global'], temp_cell=
 #Battery specifications
 bat_cap = 125*4*12 #battery capacity, 125Ah x 4 batteries x 12V
 cut_off = 0.4 #fractional cutoff for lead-acid battery 40%
-cam_consump = 600/24 #Daily consumption per hour 600Wh for the day
-
+cam_consump = 840/24 #Daily consumption per hour 600Wh for the day
 
 #Battery data frame
 df_bat = {}
@@ -58,15 +56,16 @@ df_bat['Energy_excess'] = 0
 df_bat['full_count'] = 0 
 df_bat['empty_count'] = 0 
 
-
 ## Select start date when tower is placed
 setup_date = '2006-04-01 00:11:00 UTC' #mm/dd/2006
 
 #Reorders data frame for start date
 timestamp_to_reorder = pd.to_datetime(setup_date)
+
 # Find the index of the timestamp
 df_part1 = df_bat.loc[:timestamp_to_reorder]
 df_part2 = df_bat.loc[timestamp_to_reorder:].iloc[1:]
+
 # Concatenate with the part from the timestamp first
 df_bat = pd.concat([df_part2, df_part1])
 df_new2 = pd.concat([df_part2, df_part1])
@@ -125,7 +124,6 @@ df_month_tot['Energy_excess'] = df_month_tot['Energy_excess']/df_month_tot.index
 df_month_avg = df_month_tot.groupby(df_month_tot.index.month).mean()
 df_month_avg['Month'] = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 df_month_avg.set_index('Month', inplace=True)
-
 
 df_new = df_month_tot.groupby(df_month_tot.index.month).agg({'Production': ['mean', 'std'], 'Energy_excess': ['mean', 'std']})
 
