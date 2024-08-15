@@ -39,9 +39,9 @@ def PV_data(latitude,longitude, surface_tilt, surface_azimuth, temp_coef = np.ar
     cell_temp = [None]*n
     array_power = [None]*n
     for i in range(len(surface_tilt)):
-        DF[i], _, _ = pvlib.iotools.get_pvgis_hourly(latitude, longitude, start=start_year, end=end_year, map_variables=True, components=False, usehorizon=True, userhorizon=None, raddatabase='PVGIS-SARAH', surface_tilt=surface_tilt[i],surface_azimuth=surface_azimuth[i])
+        DF[i], _, _ = pvlib.iotools.get_pvgis_hourly(latitude, longitude, start=start_year, end=end_year, map_variables=True, components=False, usehorizon=True, userhorizon=None, raddatabase='PVGIS-SARAH', surface_tilt=surface_tilt[i],surface_azimuth=surface_azimuth[i], pvcalculation=True,peakpower=power[i]/1000)
         cell_temp[i] = pvlib.temperature.pvsyst_cell(DF[i]['poa_global'], temp_air = DF[i]['temp_air'], wind_speed=DF[i]['wind_speed'], u_c=29, u_v=0)
-        array_power[i] = pvlib.pvsystem.pvwatts_dc(DF[i]['poa_global'], temp_cell=cell_temp[i], pdc0=power[i], gamma_pdc=temp_coef[i], temp_ref = 25.0)
+        array_power[i] = pvlib.pvsystem.pvwatts_dc(DF[i]['P'], temp_cell=cell_temp[i], pdc0=power[i], gamma_pdc=temp_coef[i], temp_ref = 25.0)
     tot_power = sum(array_power)
     
     df_p = pd.DataFrame()

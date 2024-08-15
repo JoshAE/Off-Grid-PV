@@ -15,8 +15,8 @@ import numpy as np
 import itertools
 
 #Solar_data collection parameters
-latitude = 52.943
-longitude = -1.133
+latitude = 53.4
+longitude = -2.16
 
 start_year = 2005
 end_year = 2015
